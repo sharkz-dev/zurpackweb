@@ -13,7 +13,7 @@ const app = express();
 
 // Configurar CORS correctamente
 app.use(cors({
-  origin: 'https://zurpackweb.vercel.app/', // URL de tu frontend
+  origin: 'http://localhost:5173', // URL de tu frontend
   credentials: true
 }));
 
