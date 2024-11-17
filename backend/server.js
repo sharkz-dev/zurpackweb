@@ -11,22 +11,27 @@ dotenv.config();
 
 const app = express();
 
-// Configurar CORS correctamente
+// Configuración de CORS actualizada
 const allowedOrigins = [
   'http://localhost:5173',
-  'http://localhost:3000',
-  'https://zurpackweb.vercel.app' // Reemplaza con tu dominio de Vercel
+  'https://zurpackweb.vercel.app',
+  'https://zurpack.vercel.app'
 ];
 
 app.use(cors({
   origin: function(origin, callback) {
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+    // Permitir solicitudes sin origin (como Postman)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
       callback(new Error('No permitido por CORS'));
     }
   },
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // Middlewares
@@ -38,11 +43,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// Health check endpoint
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', message: 'API funcionando correctamente' });
-});
-
 // Conectar a MongoDB
 connectDB();
 
@@ -52,18 +52,10 @@ app.use('/api/products', productRoutes);
 app.use('/api/send-quotation', quotationRoutes);
 app.use('/api/advertisements', advertisementRoutes);
 
-// Manejo de errores
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: 'Algo salió mal!' });
-});
+const PORT = process.env.PORT || 5000;
 
-// Solo inicia el servidor si no está siendo importado
-if (process.env.NODE_ENV !== 'test') {
-  const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => {
-    console.log(`Servidor corriendo en puerto ${PORT}`);
-  });
-}
+app.listen(PORT, () => {
+  console.log(`Servidor corriendo en puerto ${PORT}`);
+});
 
 export default app;

@@ -54,7 +54,7 @@ const Admin = () => {
   const handleEditAdSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`http://localhost:5000/api/advertisements/${editingAd}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/advertisements/${editingAd}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -94,7 +94,7 @@ const Admin = () => {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5000/api/products');
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/products`);
       if (!response.ok) throw new Error('Error al cargar los productos');
       const data = await response.json();
       setProducts(data);
@@ -107,7 +107,7 @@ const Admin = () => {
 
   const fetchAdvertisements = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/advertisements', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/advertisements`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
         }
@@ -135,7 +135,7 @@ const Admin = () => {
         formDataToSend.append('image', formData.image);
       }
 
-      const response = await fetch('http://localhost:5000/api/products', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/products`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
@@ -162,7 +162,7 @@ const Admin = () => {
   const handleAdSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:5000/api/advertisements', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/advertisements`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -192,7 +192,7 @@ const Admin = () => {
       const adToUpdate = advertisements.find(ad => ad._id === id);
       if (!adToUpdate) return;
   
-      const response = await fetch(`http://localhost:5000/api/advertisements/${id}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/advertisements/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -219,7 +219,7 @@ const Admin = () => {
     if (!window.confirm('¿Estás seguro de que quieres eliminar este anuncio?')) return;
     
     try {
-      const response = await fetch(`http://localhost:5000/api/advertisements/${id}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/advertisements/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
@@ -251,7 +251,7 @@ const Admin = () => {
         formDataToSend.append('image', editFormData.image);
       }
 
-      const response = await fetch(`http://localhost:5000/api/products/${productId}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/products/${productId}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
@@ -280,7 +280,7 @@ const Admin = () => {
     
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:5000/api/products/${productId}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/products/${productId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('adminToken')}`

@@ -6,7 +6,7 @@ const Advertisement = () => {
   useEffect(() => {
     const fetchAdvertisement = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/advertisements/active');
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/advertisements/active`);
         if (response.ok) {
           const data = await response.json();
           if (data) {
