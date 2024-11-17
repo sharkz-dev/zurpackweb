@@ -1,0 +1,19 @@
+{
+    "version": 2,
+    "builds": [
+      {
+        "src": "server.js",
+        "use": "@vercel/node"
+      }
+    ],
+    "routes": [
+      {
+        "src": "/api/(.*)",
+        "dest": "server.js"
+      }
+    ],
+    "env": {
+      "MONGO_URI": "mongodb+srv://sharkzturco:zK7F7nI3k9otgh3M@cluster0.kudgc.mongodb.net/zurpackdb",
+      "NODE_ENV": "production"
+    }
+  }
