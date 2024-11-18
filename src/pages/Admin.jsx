@@ -18,13 +18,14 @@ const Admin = () => {
     isActive: false
   });
 
-  // Estado para el formulario de nuevo producto
   const initialFormState = {
     name: '',
     description: '',
     category: '',
     image: null,
-    featured: false
+    featured: false,
+    hasSizeVariants: false,
+    sizeVariants: []
   };
 
   const [formData, setFormData] = useState(initialFormState);
@@ -36,11 +37,79 @@ const Admin = () => {
     isActive: true
   });
 
+  // Componente para manejar tamaños
+  const SizeVariantsManager = ({ variants, setVariants }) => {
+    const [newSize, setNewSize] = useState('');
+  
+    const addVariant = () => {
+      if (newSize.trim()) {
+        setVariants([...variants, { size: newSize, isAvailable: true }]);
+        setNewSize('');
+      }
+    };
+  
+    const removeVariant = (index) => {
+      setVariants(variants.filter((_, i) => i !== index));
+    };
+  
+    const toggleAvailability = (index) => {
+      setVariants(variants.map((variant, i) => 
+        i === index ? { ...variant, isAvailable: !variant.isAvailable } : variant
+      ));
+    };
+  
+    return (
+      <div className="space-y-4">
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={newSize}
+            onChange={(e) => setNewSize(e.target.value)}
+            placeholder="Ej: 30x30 cm"
+            className="flex-1 p-2 border rounded-md"
+          />
+          <button
+            type="button"
+            onClick={addVariant}
+            className="p-2 bg-green-500 text-white rounded-md hover:bg-green-600 flex items-center"
+          >
+            <Plus className="w-5 h-5" />
+          </button>
+        </div>
+        
+        <div className="space-y-2">
+          {variants.map((variant, index) => (
+            <div key={index} className="flex items-center gap-2 bg-gray-50 p-2 rounded-md">
+              <span className="flex-1">{variant.size}</span>
+              <button
+                type="button"
+                onClick={() => toggleAvailability(index)}
+                className={`px-2 py-1 rounded-md text-sm ${
+                  variant.isAvailable 
+                    ? 'bg-green-100 text-green-800' 
+                    : 'bg-red-100 text-red-800'
+                }`}
+              >
+                {variant.isAvailable ? 'Disponible' : 'No disponible'}
+              </button>
+              <button
+                type="button"
+                onClick={() => removeVariant(index)}
+                className="p-1 text-red-500 hover:bg-red-50 rounded-full"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   useEffect(() => {
     fetchProducts();
     fetchAdvertisements();
   }, []);
-
   const startEditingAd = (ad) => {
     setEditingAd(ad._id);
     setEditAdFormData({
@@ -82,7 +151,6 @@ const Admin = () => {
       isActive: false
     });
   };
-
   const showMessage = (text, type = 'success') => {
     setMessage(text);
     setMessageType(type);
@@ -119,7 +187,6 @@ const Admin = () => {
       showMessage(error.message, 'error');
     }
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -131,6 +198,8 @@ const Admin = () => {
       formDataToSend.append('description', formData.description);
       formDataToSend.append('category', formData.category);
       formDataToSend.append('featured', formData.featured);
+      formDataToSend.append('hasSizeVariants', formData.hasSizeVariants);
+      formDataToSend.append('sizeVariants', JSON.stringify(formData.sizeVariants));
       if (formData.image) {
         formDataToSend.append('image', formData.image);
       }
@@ -150,6 +219,44 @@ const Admin = () => {
 
       showMessage('Producto añadido correctamente');
       setFormData(initialFormState);
+      setImagePreview(null);
+      fetchProducts();
+    } catch (error) {
+      showMessage(error.message, 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdate = async (productId) => {
+    try {
+      setLoading(true);
+      const formDataToSend = new FormData();
+      formDataToSend.append('name', editFormData.name);
+      formDataToSend.append('description', editFormData.description);
+      formDataToSend.append('category', editFormData.category);
+      formDataToSend.append('featured', editFormData.featured);
+      formDataToSend.append('hasSizeVariants', editFormData.hasSizeVariants);
+      formDataToSend.append('sizeVariants', JSON.stringify(editFormData.sizeVariants));
+      if (editFormData.image) {
+        formDataToSend.append('image', editFormData.image);
+      }
+
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/products/${productId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+        },
+        body: formDataToSend
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Error al actualizar el producto');
+      }
+
+      showMessage('Producto actualizado correctamente');
+      setEditingProduct(null);
       setImagePreview(null);
       fetchProducts();
     } catch (error) {
@@ -239,42 +346,6 @@ const Admin = () => {
     }
   };
 
-  const handleUpdate = async (productId) => {
-    try {
-      setLoading(true);
-      const formDataToSend = new FormData();
-      formDataToSend.append('name', editFormData.name);
-      formDataToSend.append('description', editFormData.description);
-      formDataToSend.append('category', editFormData.category);
-      formDataToSend.append('featured', editFormData.featured);
-      if (editFormData.image) {
-        formDataToSend.append('image', editFormData.image);
-      }
-
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/products/${productId}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-        },
-        body: formDataToSend
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Error al actualizar el producto');
-      }
-
-      showMessage('Producto actualizado correctamente');
-      setEditingProduct(null);
-      setImagePreview(null);
-      fetchProducts();
-    } catch (error) {
-      showMessage(error.message, 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleDelete = async (productId) => {
     if (!window.confirm('¿Estás seguro de que quieres eliminar este producto?')) return;
     
@@ -333,6 +404,8 @@ const Admin = () => {
       category: product.category,
       image: null,
       featured: product.featured,
+      hasSizeVariants: product.hasSizeVariants || false,
+      sizeVariants: product.sizeVariants || [],
       currentImageUrl: product.imageUrl
     });
     setImagePreview(null);
@@ -343,7 +416,6 @@ const Admin = () => {
     setEditFormData(initialFormState);
     setImagePreview(null);
   };
-
   return (
     <div className="min-h-screen bg-gray-50 pt-12 pb-12 px-4">
       <div className="max-w-6xl mx-auto">
@@ -356,9 +428,8 @@ const Admin = () => {
             {message}
           </div>
         )}
-
-        {/* Sección de Anuncios */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+ {/* Sección de Anuncios */}
+ <div className="bg-white rounded-lg shadow-md p-6 mb-8">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-semibold">Anuncios</h2>
             <button
@@ -570,14 +641,13 @@ const Admin = () => {
   ))}
 </div>
         </div>
-
         {/* Formulario para nuevo producto */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-8">
           <h2 className="text-xl font-semibold mb-4">Añadir Nuevo Producto</h2>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Nombre del Producto
                 </label>
                 <input
@@ -641,6 +711,36 @@ const Admin = () => {
                 <label className="flex items-center space-x-2">
                   <input
                     type="checkbox"
+                    checked={formData.hasSizeVariants}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      hasSizeVariants: e.target.checked,
+                      sizeVariants: e.target.checked ? formData.sizeVariants : []
+                    })}
+                    className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                  />
+                  <span className="text-sm font-medium text-gray-700">
+                    Este producto tiene diferentes tamaños
+                  </span>
+                </label>
+              </div>
+
+              {formData.hasSizeVariants && (
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Tamaños disponibles
+                  </label>
+                  <SizeVariantsManager
+                    variants={formData.sizeVariants}
+                    setVariants={(newVariants) => setFormData({...formData, sizeVariants: newVariants})}
+                  />
+                </div>
+              )}
+
+              <div className="md:col-span-2">
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
                     checked={formData.featured}
                     onChange={(e) => setFormData({...formData, featured: e.target.checked})}
                     className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
@@ -673,7 +773,7 @@ const Admin = () => {
           </form>
         </div>
 
-        {/* Lista de productos */}
+        {/* Lista de productos existentes */}
         <div className="bg-white rounded-lg shadow-md p-6">
           <h2 className="text-xl font-semibold mb-4">Productos Existentes</h2>
           <div className="space-y-6">
@@ -740,6 +840,36 @@ const Admin = () => {
                     </div>
 
                     <div>
+                      <label className="flex items-center space-x-2 mb-4">
+                        <input
+                          type="checkbox"
+                          checked={editFormData.hasSizeVariants}
+                          onChange={(e) => setEditFormData({
+                            ...editFormData,
+                            hasSizeVariants: e.target.checked,
+                            sizeVariants: e.target.checked ? editFormData.sizeVariants : []
+                          })}
+                          className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                        />
+                        <span className="text-sm font-medium text-gray-700">
+                          Este producto tiene diferentes tamaños
+                        </span>
+                      </label>
+
+                      {editFormData.hasSizeVariants && (
+                        <div className="mb-4">
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Tamaños disponibles
+                          </label>
+                          <SizeVariantsManager
+                            variants={editFormData.sizeVariants}
+                            setVariants={(newVariants) => setEditFormData({...editFormData, sizeVariants: newVariants})}
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    <div>
                       <label className="flex items-center space-x-2">
                         <input
                           type="checkbox"
@@ -792,6 +922,25 @@ const Admin = () => {
                       </div>
                       <p className="text-sm text-gray-600 mb-2">{product.category}</p>
                       <p className="text-gray-700">{product.description}</p>
+                      {product.hasSizeVariants && (
+                        <div className="mt-2">
+                          <p className="text-sm font-medium text-gray-600">Tamaños disponibles:</p>
+                          <div className="flex flex-wrap gap-2 mt-1">
+                            {product.sizeVariants.map((variant, index) => (
+                              <span
+                                key={index}
+                                className={`text-xs px-2 py-1 rounded-full ${
+                                  variant.isAvailable 
+                                    ? 'bg-green-100 text-green-800' 
+                                    : 'bg-gray-100 text-gray-600'
+                                }`}
+                              >
+                                {variant.size}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                     <div className="flex gap-2">
                       <button

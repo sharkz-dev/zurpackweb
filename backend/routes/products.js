@@ -62,7 +62,10 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
       description: req.body.description,
       category: req.body.category,
       imageUrl: uploadResponse.secure_url,
-      featured: req.body.featured === 'true'
+      featured: req.body.featured === 'true',
+      hasSizeVariants: req.body.hasSizeVariants === 'true',
+      sizeVariants: req.body.hasSizeVariants === 'true' ? 
+        JSON.parse(req.body.sizeVariants) : []
     });
 
     const savedProduct = await product.save();
@@ -76,13 +79,19 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
 // Actualizar producto (protegida)
 router.put('/:id', protect, upload.single('image'), async (req, res) => {
   try {
+    // Parsear los datos del cuerpo de la petición
     const updateData = {
       name: req.body.name,
       description: req.body.description,
       category: req.body.category,
-      featured: req.body.featured === 'true'
+      featured: req.body.featured === 'true',
+      // Añadir el manejo de hasSizeVariants
+      hasSizeVariants: req.body.hasSizeVariants === 'true',
+      // Parsear sizeVariants si existe
+      sizeVariants: req.body.sizeVariants ? JSON.parse(req.body.sizeVariants) : []
     };
 
+    // Manejar la actualización de la imagen si se proporciona una nueva
     if (req.file) {
       const currentProduct = await Product.findById(req.params.id);
       if (currentProduct && currentProduct.imageUrl) {
@@ -101,6 +110,7 @@ router.put('/:id', protect, upload.single('image'), async (req, res) => {
       updateData.imageUrl = uploadResponse.secure_url;
     }
 
+    // Actualizar el producto con todos los campos
     const updatedProduct = await Product.findByIdAndUpdate(
       req.params.id,
       updateData,

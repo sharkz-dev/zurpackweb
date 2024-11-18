@@ -1,5 +1,16 @@
 import mongoose from 'mongoose';
 
+const sizeVariantSchema = new mongoose.Schema({
+  size: {
+    type: String,
+    required: true
+  },
+  isAvailable: {
+    type: Boolean,
+    default: true
+  }
+});
+
 const productSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -21,6 +32,11 @@ const productSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  hasSizeVariants: {
+    type: Boolean,
+    default: false
+  },
+  sizeVariants: [sizeVariantSchema],
   views: {
     type: Number,
     default: 0

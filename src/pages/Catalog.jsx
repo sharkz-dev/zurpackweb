@@ -6,6 +6,7 @@ import QuotationForm from '../components/QuotationForm';
 import ImageModal from '../components/ImageModal';
 import Advertisement from '../components/Advertisement';
 import ProductDetails from '../components/ProductDetails';
+import SizeSelector from '../components/SizeSelector';
 
 const Catalog = ({ showCart, setShowCart }) => {
   const [products, setProducts] = useState([]);
@@ -21,10 +22,12 @@ const Catalog = ({ showCart, setShowCart }) => {
   const [showQuotationForm, setShowQuotationForm] = useState(false);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const { cartItems, addToCart, removeFromCart, updateQuantity } = useCart();
-  const productsPerPage = 8;
+  const productsPerPage = 12;
   const [addMessage, setAddMessage] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
-
+  const [selectedSizes, setSelectedSizes] = useState({});
+  const [sizeErrors, setSizeErrors] = useState({});
+  const [showSelectors, setShowSelectors] = useState({});
 
   const sortOptions = [
     { value: "newest", label: "Más recientes" },
@@ -32,12 +35,6 @@ const Catalog = ({ showCart, setShowCart }) => {
     { value: "nameAsc", label: "Nombre A-Z" },
     { value: "nameDesc", label: "Nombre Z-A" }
   ];
-
-  const handleAddToCart = (product, quantity = 1) => {
-    addToCart({ ...product, quantity });
-    setAddMessage(`${quantity} ${product.name}${quantity > 1 ? 's' : ''} añadido${quantity > 1 ? 's' : ''} al carrito`);
-    setTimeout(() => setAddMessage(null), 2000);
-  };
 
   useEffect(() => {
     fetchProducts();
@@ -56,9 +53,7 @@ const Catalog = ({ showCart, setShowCart }) => {
     try {
       setLoading(true);
       const response = await fetch(`${import.meta.env.VITE_API_URL}/products`);
-      if (!response.ok) {
-        throw new Error('Error al cargar los productos');
-      }
+      if (!response.ok) throw new Error('Error al cargar los productos');
       const data = await response.json();
       setProducts(data);
       setFilteredProducts(data);
@@ -105,6 +100,46 @@ const Catalog = ({ showCart, setShowCart }) => {
     setFilteredProducts(filtered);
   };
 
+  const handleSizeSelect = (productId, size) => {
+    setSelectedSizes(prev => ({
+      ...prev,
+      [productId]: size
+    }));
+    setSizeErrors(prev => ({
+      ...prev,
+      [productId]: null
+    }));
+  };
+
+  const handleAddToCart = (product, quantity = 1) => {
+    if (product.hasSizeVariants && !selectedSizes[product._id]) {
+      setSizeErrors(prev => ({
+        ...prev,
+        [product._id]: 'Por favor selecciona un tamaño'
+      }));
+      return;
+    }
+
+    addToCart({
+      ...product,
+      selectedSize: product.hasSizeVariants ? selectedSizes[product._id] : null
+    }, quantity);
+
+    setSelectedSizes(prev => {
+      const newSizes = { ...prev };
+      delete newSizes[product._id];
+      return newSizes;
+    });
+
+    setShowSelectors(prev => ({
+      ...prev,
+      [product._id]: false
+    }));
+
+    setAddMessage(`${quantity} ${product.name}${quantity > 1 ? 's' : ''} añadido${quantity > 1 ? 's' : ''} al carrito`);
+    setTimeout(() => setAddMessage(null), 2000);
+  };
+
   const shareProduct = async (product) => {
     if (navigator.share) {
       try {
@@ -123,6 +158,120 @@ const Catalog = ({ showCart, setShowCart }) => {
     }
   };
 
+  const QuantitySelector = ({ product, onAdd }) => {
+    const [quantity, setQuantity] = useState(1);
+  
+    const handleAdd = (e) => {
+      e.stopPropagation();
+      if (!product.hasSizeVariants || selectedSizes[product._id]) {
+        onAdd(quantity);
+        setQuantity(1);
+        return;
+      }
+      
+      setSizeErrors(prev => ({
+        ...prev,
+        [product._id]: 'Por favor selecciona un tamaño'
+      }));
+    };
+  
+    if (!showSelectors[product._id]) {
+      return (
+        <button 
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowSelectors(prev => ({
+              ...prev,
+              [product._id]: true
+            }));
+            setSizeErrors(prev => ({
+              ...prev,
+              [product._id]: null
+            }));
+          }}
+          className="flex items-center px-3 py-1.5 rounded-md text-sm font-medium text-white bg-green-600 hover:bg-green-700 transition-colors duration-300"
+        >
+          <Plus className="w-4 h-4 mr-1" />
+          Cotizar
+        </button>
+      );
+    }
+  
+    return (
+      <div className="space-y-2">
+        {product.hasSizeVariants && (
+          <div>
+            <SizeSelector
+              variants={product.sizeVariants}
+              selectedSize={selectedSizes[product._id]}
+              onSelect={(size) => handleSizeSelect(product._id, size)}
+              error={sizeErrors[product._id]}
+            />
+          </div>
+        )}
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setQuantity(prev => Math.max(1, prev - 1));
+            }}
+            className="p-1 rounded bg-green-100 text-green-600 hover:bg-green-200"
+          >
+            <Minus className="w-4 h-4" />
+          </button>
+          <input
+            type="number"
+            min="1"
+            value={quantity}
+            onChange={(e) => {
+              e.stopPropagation();
+              setQuantity(Math.max(1, parseInt(e.target.value) || 1));
+            }}
+            className="w-14 text-center border rounded py-1 text-sm"
+            onClick={(e) => e.stopPropagation()}
+          />
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setQuantity(prev => prev + 1);
+            }}
+            className="p-1 rounded bg-green-100 text-green-600 hover:bg-green-200"
+          >
+            <Plus className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={handleAdd}
+            className="flex-1 flex items-center justify-center px-3 py-1 rounded text-sm font-medium text-white bg-green-600 hover:bg-green-700"
+          >
+            <Check className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setQuantity(1);
+              setShowSelectors(prev => ({
+                ...prev,
+                [product._id]: false
+              }));
+              setSizeErrors(prev => ({
+                ...prev,
+                [product._id]: null
+              }));
+            }}
+            className="p-1 rounded bg-red-100 text-red-600 hover:bg-red-200"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   const indexOfLastProduct = page * productsPerPage;
   const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
   const currentProducts = filteredProducts.slice(indexOfFirstProduct, indexOfLastProduct);
@@ -133,91 +282,7 @@ const Catalog = ({ showCart, setShowCart }) => {
       {message}
     </div>
   );
-
-  const QuantitySelector = ({ onAdd }) => {
-    const [quantity, setQuantity] = useState(1);
-    const [showSelector, setShowSelector] = useState(false);
-
-    const handleAdd = (e) => {
-      e.stopPropagation();
-      onAdd(quantity);
-      setShowSelector(false);
-      setQuantity(1);
-    };
-
-    if (!showSelector) {
-      return (
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            setShowSelector(true);
-          }}
-          className="flex items-center px-4 py-2 rounded-md text-sm font-medium text-white bg-green-600 hover:bg-green-700 transition-colors duration-300"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Añadir a la Cotización
-        </button>
-      );
-    }
-
-    return (
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            setQuantity(prev => Math.max(1, prev - 1));
-          }}
-          className="p-1 rounded-md bg-green-100 text-green-600 hover:bg-green-200"
-        >
-          <Minus className="w-4 h-4" />
-        </button>
-        <input
-          type="number"
-          min="1"
-          value={quantity}
-          onChange={(e) => {
-            e.stopPropagation();
-            setQuantity(Math.max(1, parseInt(e.target.value) || 1));
-          }}
-          className="w-16 text-center border rounded-md py-1"
-          onClick={(e) => e.stopPropagation()}
-        />
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            setQuantity(prev => prev + 1);
-          }}
-          className="p-1 rounded-md bg-green-100 text-green-600 hover:bg-green-200"
-        >
-          <Plus className="w-4 h-4" />
-        </button>
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            handleAdd(e);
-          }}
-          className="flex items-center px-3 py-1 rounded-md text-sm font-medium text-white bg-green-600 hover:bg-green-700"
-        >
-          <Check className="w-4 h-4" />
-        </button>
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            setShowSelector(false);
-            setQuantity(1);
-          }}
-          className="p-1 rounded-md bg-red-100 text-red-600 hover:bg-red-200"
-        >
-          <X className="w-4 h-4" />
-        </button>
-      </div>
-    );
-  }; const FilterSidebar = ({ isMobile = false }) => (
+  const FilterSidebar = ({ isMobile = false }) => (
     <div className={`
       ${isMobile
         ? 'fixed inset-0 z-50 bg-white transform transition-transform duration-300 overflow-y-auto'
@@ -237,7 +302,6 @@ const Catalog = ({ showCart, setShowCart }) => {
       )}
 
       <div className="p-4">
-        {/* Sección de búsqueda */}
         <div className="mb-6">
           <h3 className="text-lg font-semibold mb-3">Buscar</h3>
           <div className="relative">
@@ -252,7 +316,6 @@ const Catalog = ({ showCart, setShowCart }) => {
           </div>
         </div>
 
-        {/* Sección de categorías */}
         <div className="mb-6">
           <h3 className="text-lg font-semibold mb-3">Categorías</h3>
           <div className="space-y-2">
@@ -293,7 +356,6 @@ const Catalog = ({ showCart, setShowCart }) => {
           </div>
         </div>
 
-        {/* Sección de ordenamiento */}
         <div className="mb-6">
           <h3 className="text-lg font-semibold mb-3">Ordenar por</h3>
           <div className="space-y-2">
@@ -323,7 +385,6 @@ const Catalog = ({ showCart, setShowCart }) => {
 
   const CartDrawer = () => (
     <>
-      {/* Overlay */}
       {showCart && (
         <div
           className="fixed inset-0 bg-black bg-opacity-25 z-30"
@@ -331,7 +392,6 @@ const Catalog = ({ showCart, setShowCart }) => {
         />
       )}
 
-      {/* Carrito */}
       <div className={`fixed top-0 bottom-0 right-0 w-80 bg-white shadow-lg transform transition-transform duration-300 ${showCart ? 'translate-x-0' : 'translate-x-full'} z-40`}>
         <div className="h-full flex flex-col p-4">
           <div className="flex justify-between items-center mb-4">
@@ -352,7 +412,7 @@ const Catalog = ({ showCart, setShowCart }) => {
             <>
               <div className="flex-1 overflow-y-auto space-y-4">
                 {cartItems.map((item) => (
-                  <div key={item._id} className="flex gap-4 p-2 border rounded bg-white">
+                  <div key={`${item._id}-${item.selectedSize || 'default'}`} className="flex gap-4 p-2 border rounded bg-white">
                     <img
                       src={item.imageUrl}
                       alt={item.name}
@@ -361,22 +421,25 @@ const Catalog = ({ showCart, setShowCart }) => {
                     <div className="flex-1">
                       <h4 className="font-medium">{item.name}</h4>
                       <p className="text-sm text-gray-600">{item.category}</p>
+                      {item.selectedSize && (
+                        <p className="text-sm text-gray-600">Tamaño: {item.selectedSize}</p>
+                      )}
                       <div className="flex items-center gap-2 mt-2">
                         <button
-                          onClick={() => updateQuantity(item._id, item.quantity - 1)}
+                          onClick={() => updateQuantity(item._id, item.quantity - 1, item.selectedSize)}
                           className="p-1 hover:bg-gray-100 rounded"
                         >
                           <Minus className="w-4 h-4" />
                         </button>
                         <span>{item.quantity}</span>
                         <button
-                          onClick={() => updateQuantity(item._id, item.quantity + 1)}
+                          onClick={() => updateQuantity(item._id, item.quantity + 1, item.selectedSize)}
                           className="p-1 hover:bg-gray-100 rounded"
                         >
                           <Plus className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => removeFromCart(item._id)}
+                          onClick={() => removeFromCart(item._id, item.selectedSize)}
                           className="ml-auto p-1.5 bg-red-100 hover:bg-red-200 text-red-600 rounded-full transition-colors"
                         >
                           <X className="w-4 h-4" />
@@ -431,7 +494,6 @@ const Catalog = ({ showCart, setShowCart }) => {
               </p>
             </div>
 
-            {/* Botón de filtros móviles */}
             <div className="lg:hidden mt-4">
               <button
                 onClick={() => setShowMobileFilters(true)}
@@ -443,10 +505,8 @@ const Catalog = ({ showCart, setShowCart }) => {
             </div>
 
             <div className="mt-8 flex">
-              {/* Sidebar con filtros para desktop */}
               <FilterSidebar />
 
-              {/* Contenido principal */}
               <div className="flex-1 lg:pl-6">
                 <div className="min-h-[500px]">
                   {currentProducts.length === 0 ? (
@@ -455,75 +515,95 @@ const Catalog = ({ showCart, setShowCart }) => {
                     </div>
                   ) : (
                     <>
-                      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2">
-                        {currentProducts.map((product) => (
-                          <div
-                            key={product._id}
-                            className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300"
-                          >
-                            <div className="relative h-64 overflow-hidden">
-                              <img
-                                src={product.imageUrl}
-                                alt={product.name}
-                                className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300"
-                                onClick={() => setSelectedImage(product.imageUrl)}
-                              />
-                              {product.featured && (
-                                <div className="absolute top-2 left-2 bg-yellow-400 text-white px-3 py-1.5 rounded-full flex items-center gap-1 shadow-lg">
-                                  <Star size={16} fill="currentColor" />
-                                  <span className="text-sm font-medium">Destacado</span>
-                                </div>
-                              )}
-                              <button
-                                className="absolute top-2 right-2 p-2 bg-white rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                                onClick={() => setSelectedImage(product.imageUrl)}
-                              >
-                                <ZoomIn className="w-5 h-5 text-gray-600" />
-                              </button>
-                            </div>
-                            <div className="p-6">
-                              <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                                {product.name}
-                              </h2>
-                              <p className="text-sm text-gray-500 mb-4 line-clamp-2">
-                                {product.description}
-                              </p>
-                              <div className="flex flex-wrap justify-between items-center gap-2">
-                                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                                  {product.category}
-                                </span>
-                                <div className="flex gap-2">
-                                  <button
-                                    onClick={() => setSelectedProduct(product)}
-                                    className="px-3 py-1 text-sm bg-blue-100 text-blue-800 rounded-md hover:bg-blue-200 transition-colors"
-                                  >
-                                    Ver detalles
-                                  </button>
-                                  <button
-                                    onClick={() => shareProduct(product)}
-                                    className="p-2 text-gray-500 hover:text-gray-700 transition-colors duration-300"
-                                  >
-                                    <Share2 className="w-5 h-5" />
-                                  </button>
-                                  <QuantitySelector onAdd={(quantity) => handleAddToCart(product, quantity)} />
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
+<div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+ {currentProducts.map((product) => (
+   <div
+     key={product._id}
+     className="bg-white border rounded-lg overflow-hidden p-4 flex flex-col"
+   >
+   <div className="relative flex justify-center mb-4">
+     <img
+       src={product.imageUrl}
+       alt={product.name}
+       className="h-48 object-contain"
+       onClick={() => setSelectedImage(product.imageUrl)}
+     />
+     {product.featured && (
+       <div className="absolute top-0 left-0 bg-yellow-400 text-white px-2 py-1 text-xs rounded-br">
+         <Star size={12} fill="currentColor" className="inline mr-1" />
+         Destacado
+       </div>
+     )}
+   </div>
+   
+   <div className="flex-1 flex flex-col">
+     <h2 className="text-lg font-semibold text-gray-800 mb-1">
+       {product.name}
+     </h2>
+     
+     <div className="text-sm text-gray-500 uppercase mb-4">
+       {product.category}
+     </div>
+
+     {product.hasSizeVariants && (
+       <div className="mb-3">
+         <select
+           value={selectedSizes[product._id] || ''}
+           onChange={(e) => handleSizeSelect(product._id, e.target.value)}
+           className="w-full p-2 border rounded text-sm"
+         >
+           <option value="">Seleccionar tamaño</option>
+           {product.sizeVariants.map((variant) => (
+             <option key={variant.size} value={variant.size}>
+               {variant.size}
+             </option>
+           ))}
+         </select>
+         {sizeErrors[product._id] && (
+           <p className="text-red-500 text-xs mt-1">{sizeErrors[product._id]}</p>
+         )}
+       </div>
+     )}
+     
+     <div className="mt-auto">
+       <button 
+         onClick={() => setSelectedProduct(product)}
+         className="w-full bg-green-600 text-white py-2 rounded font-medium text-sm mb-2 hover:bg-green-700"
+       >
+         VER PRODUCTO
+       </button>
+       
+       <div className="flex items-center gap-1">
+         <input
+           type="number"
+           min="1"
+           value="1"
+           className="w-16 text-center border rounded py-1 text-sm"
+         />
+         <button
+           onClick={() => handleAddToCart(product, 1)}
+           className="flex-1 bg-gray-100 text-gray-800 py-1 px-3 rounded font-medium text-sm hover:bg-gray-200"
+         >
+           AÑADIR A LA COTIZACIÓN
+         </button>
+       </div>
+     </div>
+   </div>
+ </div>
+))}
                       </div>
 
-                      {/* Paginación */}
                       {totalPages > 1 && (
                         <div className="mt-8 flex justify-center gap-2 flex-wrap">
                           {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
                             <button
                               key={pageNum}
                               onClick={() => setPage(pageNum)}
-                              className={`px-4 py-2 rounded-md transition-colors duration-300 ${page === pageNum
+                              className={`px-4 py-2 rounded-md transition-colors duration-300 ${
+                                page === pageNum
                                   ? 'bg-green-500 text-white'
                                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                }`}
+                              }`}
                             >
                               {pageNum}
                             </button>
@@ -539,7 +619,6 @@ const Catalog = ({ showCart, setShowCart }) => {
         )}
       </div>
 
-      {/* Modal de filtros móviles */}
       {showMobileFilters && (
         <>
           <div
@@ -550,17 +629,19 @@ const Catalog = ({ showCart, setShowCart }) => {
         </>
       )}
 
-      {/* Carrito y otros modales */}
       <CartDrawer />
+      
       {showQuotationForm && (
         <QuotationForm onClose={() => setShowQuotationForm(false)} />
       )}
+      
       {selectedImage && (
         <ImageModal
           imageUrl={selectedImage}
           onClose={() => setSelectedImage(null)}
         />
       )}
+      
       {addMessage && <Toast message={addMessage} />}
 
       {selectedProduct && (
@@ -575,6 +656,9 @@ const Catalog = ({ showCart, setShowCart }) => {
             shareProduct(selectedProduct);
             setSelectedProduct(null);
           }}
+          selectedSize={selectedSizes[selectedProduct._id]}
+          onSizeSelect={(size) => handleSizeSelect(selectedProduct._id, size)}
+          sizeError={sizeErrors[selectedProduct._id]}
         />
       )}
     </div>
