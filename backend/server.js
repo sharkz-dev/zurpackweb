@@ -34,6 +34,9 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
+// Para manejar las pre-flight requests
+app.options('*', cors());
+
 // Middlewares
 app.use(express.json());
 
@@ -46,16 +49,44 @@ app.use((req, res, next) => {
 // Conectar a MongoDB
 connectDB();
 
-// Rutas
+// Rutas API
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/send-quotation', quotationRoutes);
 app.use('/api/advertisements', advertisementRoutes);
 
+// Manejador de errores CORS
+app.use((err, req, res, next) => {
+  if (err.message === 'No permitido por CORS') {
+    res.status(403).json({
+      message: 'No permitido por CORS',
+      origin: req.headers.origin
+    });
+  } else {
+    next(err);
+  }
+});
+
+// Manejador de rutas no encontradas
+app.use('*', (req, res) => {
+  res.status(404).json({
+    message: 'API route not found'
+  });
+});
+
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en puerto ${PORT}`);
+});
+
+// Manejo de errores globales
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({
+    message: 'Error interno del servidor',
+    error: process.env.NODE_ENV === 'development' ? err.message : undefined
+  });
 });
 
 export default app;

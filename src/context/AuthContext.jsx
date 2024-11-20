@@ -1,10 +1,12 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const AuthContext = createContext({});
 
 export const AuthProvider = ({ children }) => {
   const [admin, setAdmin] = useState(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const adminInfo = localStorage.getItem('adminInfo');
@@ -24,7 +26,7 @@ export const AuthProvider = ({ children }) => {
     setAdmin(null);
     localStorage.removeItem('adminInfo');
     localStorage.removeItem('adminToken');
-    window.location.reload();
+    navigate('/catalogo', { replace: true });
   };
 
   return (

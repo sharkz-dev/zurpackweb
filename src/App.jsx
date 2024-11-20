@@ -1,51 +1,50 @@
 import React, { useState } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import WhatsAppButton from "./components/WhatsAppButton";
 import Catalog from "./pages/Catalog";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Admin from "./pages/Admin";
+import LoginPage from "./pages/LoginPage";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { CartProvider } from './context/CartContext';
 
 const App = () => {
-  const [currentPage, setCurrentPage] = useState('catalogo');
   const [showCart, setShowCart] = useState(false);
 
-  const renderPage = () => {
-    switch(currentPage) {
-      case 'nosotros':
-        return <About />;
-      case 'contacto':
-        return <Contact />;
-      case 'admin':
-        return (
-          <ProtectedRoute>
-            <Admin />
-          </ProtectedRoute>
-        );
-      case 'catalogo':
-      default:
-        return <Catalog showCart={showCart} setShowCart={setShowCart} />;
-    }
-  };
-
   return (
-    <AuthProvider>
-      <CartProvider>
-        <div className="min-h-screen bg-gray-50">
-          <Navbar 
-            setCurrentPage={setCurrentPage} 
-            setShowCart={setShowCart}
-          />
-          <div className="pt-16">
-            {renderPage()}
+    <BrowserRouter>
+      <AuthProvider>
+        <CartProvider>
+          <div className="min-h-screen bg-gray-50">
+            <Navbar 
+              setShowCart={setShowCart}
+            />
+            <div className="pt-16">
+              <Routes>
+                <Route path="/" element={<Navigate to="/catalogo" replace />} />
+                <Route path="/catalogo" element={<Catalog showCart={showCart} setShowCart={setShowCart} />} />
+                <Route path="/nosotros" element={<About />} />
+                <Route path="/contacto" element={<Contact />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route
+                  path="/admin"
+                  element={
+                    <ProtectedRoute>
+                      <Admin />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route path="*" element={<Navigate to="/catalogo" replace />} />
+              </Routes>
+            </div>
+            <WhatsAppButton />
           </div>
-          <WhatsAppButton />
-        </div>
-      </CartProvider>
-    </AuthProvider>
+        </CartProvider>
+      </AuthProvider>
+    </BrowserRouter>
   );
 };
 

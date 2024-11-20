@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Lock, Loader } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -8,6 +9,7 @@ const Login = ({ onClose }) => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -15,8 +17,6 @@ const Login = ({ onClose }) => {
     setLoading(true);
 
     try {
-      console.log('Intentando login con:', { username }); 
-
       const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/login`, {
         method: 'POST',
         headers: {
@@ -26,20 +26,14 @@ const Login = ({ onClose }) => {
       });
 
       const data = await response.json();
-      console.log('Respuesta del servidor:', data);
 
       if (!response.ok) {
         throw new Error(data.message || 'Error al iniciar sesión');
       }
 
-      console.log('Login exitoso, guardando datos...');
       login(data);
-      
-      console.log('Cerrando modal...');
       onClose();
-      
-      console.log('Recargando página...');
-      window.location.reload();
+      navigate('/admin'); // Navegar a la ruta admin después del login exitoso
     } catch (error) {
       console.error('Error detallado:', error);
       setError(error.message || 'Error al iniciar sesión');

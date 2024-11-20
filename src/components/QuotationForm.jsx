@@ -26,7 +26,8 @@ const QuotationForm = ({ onClose }) => {
         items: cartItems.map(item => ({
           name: item.name,
           quantity: item.quantity,
-          category: item.category
+          category: item.category,
+          selectedSize: item.selectedSize  // Añadir esta línea
         }))
       };
 
@@ -150,17 +151,23 @@ const QuotationForm = ({ onClose }) => {
             </div>
 
             <div className="mt-4">
-              <h3 className="font-medium mb-2">Productos en la cotización:</h3>
-              <div className="space-y-2">
-                {cartItems.map(item => (
-                  <div key={item._id} className="flex justify-between items-center">
-                    <span>{item.name}</span>
-                    <span className="text-gray-600">Cantidad: {item.quantity}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
+  <h3 className="font-medium mb-2">Productos en la cotización:</h3>
+  <div className="space-y-2">
+    {cartItems.map(item => (
+      <div key={`${item._id}-${item.selectedSize || 'default'}`} className="flex justify-between items-center">
+        <div>
+          <span>{item.name}</span>
+          {item.selectedSize && (
+            <span className="text-sm text-gray-500 ml-2">
+              (Tamaño: {item.selectedSize})
+            </span>
+          )}
+        </div>
+        <span className="text-gray-600">Cantidad: {item.quantity}</span>
+      </div>
+    ))}
+  </div>
+</div>
             <button
               type="submit"
               disabled={loading}

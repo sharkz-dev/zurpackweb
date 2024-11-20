@@ -3,6 +3,7 @@ import { X, Share2, Plus } from 'lucide-react';
 
 const ProductDetails = ({ product, onClose, onAddToCart, onShare }) => {
   return (
+
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto relative">
         {/* Botón de cerrar */}
@@ -12,8 +13,16 @@ const ProductDetails = ({ product, onClose, onAddToCart, onShare }) => {
         >
           <X className="w-6 h-6 text-gray-600" />
         </button>
+        <button
+          onClick={onClose}
+          className="md:hidden absolute top-2 right-2 p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors z-10"
+        >
+          <X className="w-6 h-6 text-gray-600" />
+        </button>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-6">
+
+          
           {/* Imagen del producto */}
           <div className="relative">
             <img
