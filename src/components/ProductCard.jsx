@@ -89,7 +89,7 @@ const ProductCard = ({
                 showError ? 'border-red-500' : 'border-gray-300'
               }`}
             >
-              <option value="">Selección tamaños</option>
+              <option value="">Tamaños</option>
               {availableSizes.map((variant) => (
                 <option key={variant.size} value={variant.size}>
                   {variant.size}
