@@ -27,9 +27,8 @@ export const useCartOperations = () => {
   }, []);
 
   const handleAddToCart = useCallback((product) => {
-    const quantity = quantities[product._id] || 1;
-    
-    if (product.hasSizeVariants && !selectedSizes[product._id]) {
+    // Validar que el producto tenga un tamaño seleccionado si es necesario
+    if (product.hasSizeVariants && !product.selectedSize) {
       setSizeErrors(prev => ({
         ...prev,
         [product._id]: 'Por favor selecciona un tamaño'
@@ -37,13 +36,15 @@ export const useCartOperations = () => {
       return;
     }
 
+    const quantity = product.quantity || 1;
+
+    // Añadir al carrito
     addToCart({
       ...product,
-      selectedSize: product.hasSizeVariants ? selectedSizes[product._id] : null,
       quantity
     });
 
-    // Limpiar estados
+    // Limpiar estados después de añadir al carrito
     setQuantities(prev => {
       const { [product._id]: _, ...rest } = prev;
       return rest;
@@ -54,9 +55,32 @@ export const useCartOperations = () => {
       return rest;
     });
 
+    // Mostrar mensaje de confirmación
     setAddMessage(`${quantity} ${product.name}${quantity > 1 ? 's' : ''} añadido${quantity > 1 ? 's' : ''} al carrito`);
     setTimeout(() => setAddMessage(null), 2000);
-  }, [addToCart, quantities, selectedSizes]);
+  }, [addToCart]);
+
+  const resetStates = useCallback(() => {
+    setSelectedSizes({});
+    setSizeErrors({});
+    setQuantities({});
+    setAddMessage(null);
+  }, []);
+
+  const clearProductState = useCallback((productId) => {
+    setSelectedSizes(prev => {
+      const { [productId]: _, ...rest } = prev;
+      return rest;
+    });
+    setSizeErrors(prev => {
+      const { [productId]: _, ...rest } = prev;
+      return rest;
+    });
+    setQuantities(prev => {
+      const { [productId]: _, ...rest } = prev;
+      return rest;
+    });
+  }, []);
 
   return {
     selectedSizes,
@@ -65,6 +89,8 @@ export const useCartOperations = () => {
     addMessage,
     handleSizeSelect,
     handleQuantityChange,
-    handleAddToCart
+    handleAddToCart,
+    resetStates,
+    clearProductState
   };
 };

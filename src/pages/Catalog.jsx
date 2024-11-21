@@ -1,31 +1,29 @@
 import React, { useState, useMemo, useEffect, memo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Loader } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useProducts } from '../hooks/useProducts';
 import { useCartOperations } from '../hooks/useCartOperations';
 import { useProductFilters } from '../hooks/useProductFilters';
-import { useProductSharing } from '../hooks/useProductSharing';
 import ImageCarousel from '../components/ImageCarousel';
 import QuotationForm from '../components/QuotationForm';
 import ImageModal from '../components/ImageModal';
 import Advertisement from '../components/Advertisement';
-import ProductDetails from '../components/ProductDetails';
 import ProductCard from '../components/ProductCard';
 import CartDrawer from '../components/CartDrawer';
 import FilterPanel from '../components/FilterPanel';
 import Toast from '../components/Toast';
 
-// Componentes memorizados para evitar re-renders innecesarios
+// Componentes memorizados
 const MemoizedProductCard = memo(ProductCard);
 const MemoizedAdvertisement = memo(Advertisement);
 const MemoizedImageCarousel = memo(ImageCarousel);
 const MemoizedFilterPanel = memo(FilterPanel);
 
-// Número de productos por página
 const PRODUCTS_PER_PAGE = 12;
 
 const Catalog = ({ showCart, setShowCart }) => {
-  // Custom hooks
+  const navigate = useNavigate();
   const { cartItems, removeFromCart, updateQuantity } = useCart();
   const { 
     products, 
@@ -45,22 +43,11 @@ const Catalog = ({ showCart, setShowCart }) => {
     getFilteredProducts
   } = useProductFilters(products);
   
-  const {
-    selectedSizes,
-    sizeErrors,
-    quantities,
-    addMessage,
-    handleSizeSelect,
-    handleQuantityChange,
-    handleAddToCart
-  } = useCartOperations();
-
-  const shareProduct = useProductSharing();
+  const { addMessage, handleAddToCart } = useCartOperations();
 
   // Estados locales
   const [selectedImage, setSelectedImage] = useState(null);
   const [showQuotationForm, setShowQuotationForm] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState(null);
   const [page, setPage] = useState(1);
 
   // Memoizar productos filtrados y paginados
@@ -78,26 +65,15 @@ const Catalog = ({ showCart, setShowCart }) => {
 
   const totalPages = Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE);
 
-  // Reset página cuando cambian los filtros
   useEffect(() => {
     setPage(1);
   }, [searchTerm, selectedCategory, sortOrder]);
-
-  // Manejadores de eventos
-  const handleProductSelect = (product) => {
-    setSelectedProduct(product);
-  };
-
-  const handleModalClose = () => {
-    setSelectedProduct(null);
-  };
 
   const handleQuotationRequest = () => {
     setShowCart(false);
     setShowQuotationForm(true);
   };
 
-  // Renderizado condicional para estados de carga y error
   if (loading) {
     return (
       <div className="fixed inset-0 flex justify-center items-center bg-gray-50">
@@ -123,7 +99,7 @@ const Catalog = ({ showCart, setShowCart }) => {
         <MemoizedAdvertisement />
         <MemoizedImageCarousel />
   
-        <div className="text-center mt-4 mb-12"> {/* Añadido mb-12 para más espacio */}
+        <div className="text-center mt-4 mb-12">
           <h1 className="text-4xl font-extrabold text-gray-900 sm:text-5xl">
             Nuestros Productos
           </h1>
@@ -132,20 +108,18 @@ const Catalog = ({ showCart, setShowCart }) => {
           </p>
         </div>
 
-        {/* Panel de filtros */}
         <div className="mt-8">
-        <MemoizedFilterPanel
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-          selectedCategory={selectedCategory}
-          onCategoryChange={setSelectedCategory}
-          sortOrder={sortOrder}
-          onSortChange={setSortOrder}
-          categories={categories}
-        />
-      </div>
+          <MemoizedFilterPanel
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            selectedCategory={selectedCategory}
+            onCategoryChange={setSelectedCategory}
+            sortOrder={sortOrder}
+            onSortChange={setSortOrder}
+            categories={categories}
+          />
+        </div>
 
-        {/* Grid de productos */}
         <div className="mt-8">
           <div className="min-h-[500px]">
             {currentProducts.length === 0 ? (
@@ -171,21 +145,12 @@ const Catalog = ({ showCart, setShowCart }) => {
                     key={product._id}
                     product={product}
                     onImageClick={setSelectedImage}
-                    onProductClick={handleProductSelect}
                     onAddToCart={handleAddToCart}
-                    selectedSize={selectedSizes[product._id]}
-                    onSizeSelect={(size) => handleSizeSelect(product._id, size)}
-                    sizeError={sizeErrors[product._id]}
-                    quantity={quantities[product._id] || 1}
-                    onQuantityChange={(newQuantity) => 
-                      handleQuantityChange(product._id, newQuantity)
-                    }
                   />
                 ))}
               </div>
             )}
 
-            {/* Paginación */}
             {totalPages > 1 && (
               <div className="mt-8 flex justify-center gap-2 flex-wrap">
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
@@ -207,7 +172,6 @@ const Catalog = ({ showCart, setShowCart }) => {
         </div>
       </div>
 
-      {/* Carrito */}
       <CartDrawer
         isOpen={showCart}
         onClose={() => setShowCart(false)}
@@ -217,7 +181,6 @@ const Catalog = ({ showCart, setShowCart }) => {
         onQuotationRequest={handleQuotationRequest}
       />
       
-      {/* Modales y notificaciones */}
       {showQuotationForm && (
         <QuotationForm 
           onClose={() => setShowQuotationForm(false)}
@@ -236,18 +199,6 @@ const Catalog = ({ showCart, setShowCart }) => {
       )}
       
       {addMessage && <Toast message={addMessage} />}
-
-      {selectedProduct && (
-        <ProductDetails
-          product={selectedProduct}
-          onClose={handleModalClose}
-          onAddToCart={handleAddToCart}
-          onShare={shareProduct}
-          selectedSize={selectedSizes[selectedProduct._id]}
-          onSizeSelect={(size) => handleSizeSelect(selectedProduct._id, size)}
-          sizeError={sizeErrors[selectedProduct._id]}
-        />
-      )}
     </div>
   );
 };

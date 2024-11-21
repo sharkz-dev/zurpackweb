@@ -41,6 +41,20 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Obtener un producto específico por ID (ruta pública)
+router.get('/:id', async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) {
+      return res.status(404).json({ message: 'Producto no encontrado' });
+    }
+    res.json(product);
+  } catch (error) {
+    console.error('Error al obtener el producto:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // Crear nuevo producto (protegida)
 router.post('/', protect, upload.single('image'), async (req, res) => {
   try {
@@ -85,9 +99,7 @@ router.put('/:id', protect, upload.single('image'), async (req, res) => {
       description: req.body.description,
       category: req.body.category,
       featured: req.body.featured === 'true',
-      // Añadir el manejo de hasSizeVariants
       hasSizeVariants: req.body.hasSizeVariants === 'true',
-      // Parsear sizeVariants si existe
       sizeVariants: req.body.sizeVariants ? JSON.parse(req.body.sizeVariants) : []
     };
 

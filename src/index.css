@@ -2,17 +2,53 @@
 @tailwind components;
 @tailwind utilities;
 
-@keyframes fadeInUp {
-  from {
+/* Animación para la notificación del carrito (centrada desde abajo) */
+@keyframes cartNotificationIn {
+  0% {
     opacity: 0;
-    transform: translate(-50%, 1rem);
+    transform: translateY(1rem);
   }
-  to {
+  
+  100% {
     opacity: 1;
-    transform: translate(-50%, 0);
+    transform: translateY(0);
+  }
+}
+
+.animate-cart-notification {
+  animation: cartNotificationIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Animación para mensajes de error dentro de componentes (desde arriba) */
+@keyframes fadeInDown {
+  0% {
+    opacity: 0;
+    transform: translateY(-0.5rem);
+  }
+  
+  100% {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
 .animate-fade-in-up {
-  animation: fadeInUp 0.3s ease-out;
+  animation: fadeInDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Animación de salida para ambos casos si es necesaria */
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  
+  100% {
+    opacity: 0;
+    transform: translateY(-0.5rem);
+  }
+}
+
+.animate-fade-out {
+  animation: fadeOut 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }

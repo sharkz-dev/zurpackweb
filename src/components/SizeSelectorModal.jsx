@@ -7,8 +7,6 @@ const SizeSelectorModal = ({
   onConfirm, 
   selectedSize, 
   onSizeSelect,
-  quantity,
-  onQuantityChange,
   error 
 }) => {
   const handleSubmit = (e) => {

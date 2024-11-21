@@ -34,9 +34,19 @@ const productSchema = new mongoose.Schema({
   },
   hasSizeVariants: {
     type: Boolean,
-    default: false
+    default: true,
+    required: true
   },
-  sizeVariants: [sizeVariantSchema],
+  sizeVariants: {
+    type: [sizeVariantSchema],
+    required: true,
+    validate: {
+      validator: function(v) {
+        return v.length >= 1;
+      },
+      message: 'El producto debe tener al menos un tamaño'
+    }
+  },
   views: {
     type: Number,
     default: 0
