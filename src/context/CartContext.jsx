@@ -70,6 +70,7 @@ export const CartProvider = ({ children }) => {
     );
   };
 
+  // Nueva función para limpiar el carrito
   const clearCart = () => {
     setCartItems([]);
     localStorage.removeItem(CART_STORAGE_KEY);

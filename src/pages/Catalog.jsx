@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Loader } from 'lucide-react';
+import { Loader, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useProducts } from '../hooks/useProducts';
 import { useCartOperations } from '../hooks/useCartOperations';
@@ -14,7 +14,6 @@ import CartDrawer from '../components/CartDrawer';
 import FilterPanel from '../components/FilterPanel';
 import Toast from '../components/Toast';
 
-// Componentes memorizados
 const MemoizedProductCard = memo(ProductCard);
 const MemoizedAdvertisement = memo(Advertisement);
 const MemoizedImageCarousel = memo(ImageCarousel);
@@ -23,13 +22,11 @@ const MemoizedFilterPanel = memo(FilterPanel);
 const PRODUCTS_PER_PAGE = 12;
 
 const Catalog = ({ showCart, setShowCart }) => {
-  const navigate = useNavigate();
-  const { cartItems, removeFromCart, updateQuantity } = useCart();
+  const { cartItems, removeFromCart, updateQuantity, clearCart } = useCart();
   const { 
     products, 
     loading, 
     error,
-    refetchProducts
   } = useProducts();
 
   const {
@@ -44,13 +41,10 @@ const Catalog = ({ showCart, setShowCart }) => {
   } = useProductFilters(products);
   
   const { addMessage, handleAddToCart } = useCartOperations();
-
-  // Estados locales
   const [selectedImage, setSelectedImage] = useState(null);
   const [showQuotationForm, setShowQuotationForm] = useState(false);
   const [page, setPage] = useState(1);
 
-  // Memoizar productos filtrados y paginados
   const filteredProducts = useMemo(() => getFilteredProducts(), [
     products,
     searchTerm,
@@ -72,6 +66,82 @@ const Catalog = ({ showCart, setShowCart }) => {
   const handleQuotationRequest = () => {
     setShowCart(false);
     setShowQuotationForm(true);
+  };
+
+  const handleClearCart = () => {
+    clearCart();
+    setAddMessage('Carrito limpiado exitosamente');
+    setTimeout(() => setAddMessage(null), 3000);
+  };
+
+  const PaginationControls = () => {
+    if (totalPages <= 1) return null;
+
+    const renderPageNumbers = () => {
+      let pages = [];
+      const maxVisiblePages = 5;
+      
+      if (totalPages <= maxVisiblePages) {
+        for (let i = 1; i <= totalPages; i++) {
+          pages.push(i);
+        }
+      } else {
+        if (page <= 3) {
+          pages = [1, 2, 3, 4, '...', totalPages];
+        } else if (page >= totalPages - 2) {
+          pages = [1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+        } else {
+          pages = [1, '...', page - 1, page, page + 1, '...', totalPages];
+        }
+      }
+
+      return pages.map((pageNum, index) => {
+        if (pageNum === '...') {
+          return (
+            <span key={`ellipsis-${index}`} className="px-4 py-2">
+              ...
+            </span>
+          );
+        }
+        return (
+          <button
+            key={pageNum}
+            onClick={() => setPage(pageNum)}
+            className={`px-4 py-2 rounded-lg transition-colors ${
+              page === pageNum
+                ? 'bg-green-500 text-white'
+                : 'bg-white hover:bg-gray-100'
+            }`}
+          >
+            {pageNum}
+          </button>
+        );
+      });
+    };
+
+    return (
+      <div className="mt-8 flex justify-center items-center gap-2">
+        <button
+          onClick={() => setPage(p => Math.max(1, p - 1))}
+          disabled={page === 1}
+          className="p-2 rounded-lg border bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+        
+        <div className="flex gap-2">
+          {renderPageNumbers()}
+        </div>
+
+        <button
+          onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+          disabled={page === totalPages}
+          className="p-2 rounded-lg border bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <ChevronRight className="w-5 h-5" />
+        </button>
+      </div>
+    );
   };
 
   if (loading) {
@@ -97,8 +167,9 @@ const Catalog = ({ showCart, setShowCart }) => {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <MemoizedAdvertisement />
-        <MemoizedImageCarousel />
-  
+        <div className="mb-8">
+          <MemoizedImageCarousel />
+        </div>
         <div className="text-center mt-4 mb-12">
           <h1 className="text-4xl font-extrabold text-gray-900 sm:text-5xl">
             Nuestros Productos
@@ -139,7 +210,7 @@ const Catalog = ({ showCart, setShowCart }) => {
                 </button>
               </div>
             ) : (
-              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
                 {currentProducts.map((product) => (
                   <MemoizedProductCard
                     key={product._id}
@@ -151,23 +222,7 @@ const Catalog = ({ showCart, setShowCart }) => {
               </div>
             )}
 
-            {totalPages > 1 && (
-              <div className="mt-8 flex justify-center gap-2 flex-wrap">
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
-                  <button
-                    key={pageNum}
-                    onClick={() => setPage(pageNum)}
-                    className={`px-4 py-2 rounded-md transition-colors duration-300 ${
-                      page === pageNum
-                        ? 'bg-green-500 text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
-                  >
-                    {pageNum}
-                  </button>
-                ))}
-              </div>
-            )}
+            <PaginationControls />
           </div>
         </div>
       </div>
@@ -179,6 +234,7 @@ const Catalog = ({ showCart, setShowCart }) => {
         onUpdateQuantity={updateQuantity}
         onRemove={removeFromCart}
         onQuotationRequest={handleQuotationRequest}
+        onClearCart={handleClearCart}
       />
       
       {showQuotationForm && (

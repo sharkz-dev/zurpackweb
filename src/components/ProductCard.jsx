@@ -34,23 +34,25 @@ const ProductCard = ({
     if (e.altKey || e.ctrlKey || e.shiftKey) {
       onImageClick && onImageClick(product.imageUrl);
     } else {
-      navigate(`/catalogo/${product._id}`);
+      navigate(`/catalogo/${product.slug}`);
     }
   };
 
   return (
-    <div className="bg-white border rounded-lg overflow-hidden p-4 flex flex-col relative hover:shadow-lg transition-shadow duration-200">
+    <div className="bg-white border rounded-lg overflow-hidden p-3 flex flex-col relative hover:shadow-lg transition-shadow duration-200 w-full max-w-xs">
       {/* Imagen y badge destacado */}
-      <div className="relative flex justify-center mb-4">
-        <img
-          src={product.imageUrl}
-          alt={product.name}
-          className="h-48 object-contain cursor-pointer transition-transform hover:scale-105"
-          onClick={handleImageClick}
-          title="Clic para ver detalles. Alt+Clic para zoom"
-        />
+      <div className="relative flex justify-center mb-3">
+        <div className="w-full h-40 rounded-lg overflow-hidden bg-gray-50 flex items-center justify-center">
+          <img
+            src={product.imageUrl}
+            alt={product.name}
+            className="h-36 w-full object-contain cursor-pointer transition-transform hover:scale-105 rounded-lg p-2"
+            onClick={handleImageClick}
+            title="Clic para ver detalles. Alt+Clic para zoom"
+          />
+        </div>
         {product.featured && (
-          <div className="absolute top-0 left-0 bg-yellow-400 text-white px-2 py-1 text-xs rounded-br">
+          <div className="absolute top-2 left-2 bg-yellow-400 text-white px-2 py-1 text-xs rounded-lg">
             <Star size={12} fill="currentColor" className="inline mr-1" />
             Destacado
           </div>
@@ -58,9 +60,9 @@ const ProductCard = ({
       </div>
       
       {/* Título y categoría */}
-      <div className="mb-4">
-        <h2 className="text-lg font-semibold text-gray-800 mb-1 cursor-pointer hover:text-green-600"
-            onClick={() => navigate(`/catalogo/${product._id}`)}>
+      <div className="mb-3">
+        <h2 className="text-base font-semibold text-gray-800 mb-1 cursor-pointer hover:text-green-600 line-clamp-2 min-h-[2.5rem]"
+            onClick={() => navigate(`/catalogo/${product.slug}`)}>
           {product.name}
         </h2>
         
@@ -71,21 +73,21 @@ const ProductCard = ({
 
       {/* Botón Ver Detalles */}
       <button
-        onClick={() => navigate(`/catalogo/${product._id}`)}
-        className="w-full bg-green-500 text-white hover:bg-green-600 py-2 px-4 rounded-lg transition-colors text-sm font-medium mb-4"
+        onClick={() => navigate(`/catalogo/${product.slug}`)}
+        className="w-full bg-green-500 text-white hover:bg-green-600 py-1.5 px-4 rounded-lg transition-colors text-sm font-medium mb-3"
       >
         VER DETALLES
       </button>
 
       {/* Contenedor para tamaño y cantidad */}
-      <div className="flex justify-between items-start mb-4">
+      <div className="flex justify-between items-start mb-3 gap-2">
         {/* Selector de tamaño */}
         {product.hasSizeVariants && (
           <div className="w-[48%]">
             <select
               value={localSelectedSize}
               onChange={(e) => setLocalSelectedSize(e.target.value)}
-              className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-green-500 text-sm ${
+              className={`w-full p-1.5 border rounded-md focus:ring-2 focus:ring-green-500 text-sm ${
                 showError ? 'border-red-500' : 'border-gray-300'
               }`}
             >
@@ -118,7 +120,7 @@ const ProductCard = ({
               e.stopPropagation();
               setLocalQuantity(Math.max(1, parseInt(e.target.value) || 1));
             }}
-            className="w-16 text-center border rounded py-1 text-sm"
+            className="w-12 text-center border rounded py-1 text-sm"
           />
           <button
             onClick={(e) => {
@@ -135,7 +137,7 @@ const ProductCard = ({
       {/* Botón Añadir a Cotización */}
       <button
         onClick={handleAddToCart}
-        className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-lg text-sm font-medium
+        className="w-full flex items-center justify-center gap-2 py-1.5 px-4 rounded-lg text-sm font-medium
                  bg-white text-green-600 border border-green-500 hover:bg-green-50 transition-colors"
       >
         <ShoppingCart className="w-4 h-4" />

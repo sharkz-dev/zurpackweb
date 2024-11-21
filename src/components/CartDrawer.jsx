@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Plus, Minus, ShoppingCart } from 'lucide-react';
+import { X, Plus, Minus, ShoppingCart, Trash } from 'lucide-react';
 
 const CartItem = ({ item, onUpdateQuantity, onRemove }) => (
   <div className="flex gap-4 p-2 border rounded bg-white">
@@ -41,10 +41,11 @@ const CartItem = ({ item, onUpdateQuantity, onRemove }) => (
 const CartDrawer = ({ 
   isOpen, 
   onClose, 
-  items, 
+  items = [], 
   onUpdateQuantity, 
   onRemove,
-  onQuotationRequest 
+  onQuotationRequest,
+  onClearCart // Nueva prop para limpiar carrito
 }) => (
   <>
     {isOpen && (
@@ -82,16 +83,27 @@ const CartDrawer = ({
                 />
               ))}
             </div>
-            <button
-              onClick={() => {
-                onClose();
-                onQuotationRequest();
-              }}
-              className="mt-4 w-full bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 flex items-center justify-center gap-2"
-            >
-              <ShoppingCart className="w-4 h-4" />
-              Solicitar Cotización
-            </button>
+            
+            <div className="mt-4 space-y-2">
+              <button
+                onClick={onClearCart}
+                className="w-full py-2 px-4 bg-red-100 text-red-600 rounded hover:bg-red-200 transition-colors flex items-center justify-center gap-2"
+              >
+                <Trash className="w-4 h-4" />
+                Limpiar Carrito
+              </button>
+
+              <button
+                onClick={() => {
+                  onClose();
+                  onQuotationRequest();
+                }}
+                className="w-full bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 flex items-center justify-center gap-2"
+              >
+                <ShoppingCart className="w-4 h-4" />
+                Solicitar Cotización
+              </button>
+            </div>
           </>
         )}
       </div>

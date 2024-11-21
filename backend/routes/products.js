@@ -23,7 +23,7 @@ const getPublicIdFromUrl = (url) => {
     const urlParts = url.split('/');
     const filename = urlParts[urlParts.length - 1];
     const folderName = urlParts[urlParts.length - 2];
-    return `${folderName}/${filename.split('.')[0]}`; // productos/abcdef123456
+    return `${folderName}/${filename.split('.')[0]}`;
   } catch (error) {
     console.error('Error extrayendo public_id:', error);
     return null;
@@ -41,10 +41,10 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Obtener un producto específico por ID (ruta pública)
-router.get('/:id', async (req, res) => {
+// Obtener un producto por slug (ruta pública)
+router.get('/by-slug/:slug', async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const product = await Product.findOne({ slug: req.params.slug });
     if (!product) {
       return res.status(404).json({ message: 'Producto no encontrado' });
     }
@@ -55,11 +55,56 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Crear nuevo producto (protegida)
+// Mantener la ruta por ID para compatibilidad
 router.post('/', protect, upload.single('image'), async (req, res) => {
   try {
+    // Logging detallado
+    console.log('Headers:', req.headers);
+    console.log('Body:', req.body);
+    console.log('File:', req.file);
+    console.log('SizeVariants antes de parsear:', req.body.sizeVariants);
+
     if (!req.file) {
-      return res.status(400).json({ message: 'No se ha proporcionado una imagen' });
+      return res.status(400).json({ 
+        message: 'No se ha proporcionado una imagen',
+        details: 'El campo image es requerido'
+      });
+    }
+
+    // Validar datos requeridos
+    if (!req.body.name) {
+      return res.status(400).json({ 
+        message: 'El nombre es requerido',
+        field: 'name'
+      });
+    }
+
+    if (!req.body.description) {
+      return res.status(400).json({ 
+        message: 'La descripción es requerida',
+        field: 'description'
+      });
+    }
+
+    if (!req.body.category) {
+      return res.status(400).json({ 
+        message: 'La categoría es requerida',
+        field: 'category'
+      });
+    }
+
+    let sizeVariants = [];
+    if (req.body.sizeVariants) {
+      try {
+        sizeVariants = JSON.parse(req.body.sizeVariants);
+        console.log('SizeVariants parseados:', sizeVariants);
+      } catch (error) {
+        console.error('Error parseando sizeVariants:', error);
+        return res.status(400).json({ 
+          message: 'Error en el formato de sizeVariants',
+          details: error.message
+        });
+      }
     }
 
     // Subir imagen a Cloudinary
@@ -77,23 +122,29 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
       category: req.body.category,
       imageUrl: uploadResponse.secure_url,
       featured: req.body.featured === 'true',
-      hasSizeVariants: req.body.hasSizeVariants === 'true',
-      sizeVariants: req.body.hasSizeVariants === 'true' ? 
-        JSON.parse(req.body.sizeVariants) : []
+      hasSizeVariants: true,
+      sizeVariants: sizeVariants
     });
 
+    console.log('Producto a guardar:', product);
+
     const savedProduct = await product.save();
+    console.log('Producto guardado exitosamente:', savedProduct);
+    
     res.status(201).json(savedProduct);
   } catch (error) {
-    console.error('Error al crear producto:', error);
-    res.status(400).json({ message: error.message });
+    console.error('Error detallado:', error);
+    res.status(400).json({ 
+      message: error.message,
+      details: error.errors ? Object.values(error.errors).map(e => e.message) : [],
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 });
 
 // Actualizar producto (protegida)
 router.put('/:id', protect, upload.single('image'), async (req, res) => {
   try {
-    // Parsear los datos del cuerpo de la petición
     const updateData = {
       name: req.body.name,
       description: req.body.description,
@@ -103,7 +154,6 @@ router.put('/:id', protect, upload.single('image'), async (req, res) => {
       sizeVariants: req.body.sizeVariants ? JSON.parse(req.body.sizeVariants) : []
     };
 
-    // Manejar la actualización de la imagen si se proporciona una nueva
     if (req.file) {
       const currentProduct = await Product.findById(req.params.id);
       if (currentProduct && currentProduct.imageUrl) {
@@ -122,7 +172,6 @@ router.put('/:id', protect, upload.single('image'), async (req, res) => {
       updateData.imageUrl = uploadResponse.secure_url;
     }
 
-    // Actualizar el producto con todos los campos
     const updatedProduct = await Product.findByIdAndUpdate(
       req.params.id,
       updateData,
@@ -148,24 +197,18 @@ router.delete('/:id', protect, async (req, res) => {
       return res.status(404).json({ message: 'Producto no encontrado' });
     }
 
-    // Eliminar imagen de Cloudinary
     const publicId = getPublicIdFromUrl(product.imageUrl);
     if (publicId) {
       try {
         await cloudinary.uploader.destroy(publicId);
-        console.log('Imagen eliminada de Cloudinary');
       } catch (cloudinaryError) {
         console.error('Error eliminando imagen de Cloudinary:', cloudinaryError);
       }
     }
 
-    // Eliminar producto de la base de datos
     await Product.findByIdAndDelete(req.params.id);
     
-    res.json({ 
-      message: 'Producto e imagen eliminados correctamente',
-      deletedProduct: product
-    });
+    res.json({ message: 'Producto eliminado correctamente' });
   } catch (error) {
     console.error('Error en la eliminación:', error);
     res.status(500).json({ message: error.message });

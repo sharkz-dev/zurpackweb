@@ -8,7 +8,7 @@ import CartDrawer from '../components/CartDrawer';
 import QuotationForm from '../components/QuotationForm';
 
 const ProductDetailPage = ({ showCart, setShowCart }) => {
-  const { productId } = useParams();
+  const { slug } = useParams(); // Cambiado de productId a slug
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const [product, setProduct] = useState(null);
@@ -25,10 +25,11 @@ const ProductDetailPage = ({ showCart, setShowCart }) => {
     setShowCart(false);
     setShowQuotationForm(true);
   };
+
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/products/${productId}`);
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/products/by-slug/${slug}`);
         if (!response.ok) throw new Error('Producto no encontrado');
         const data = await response.json();
         setProduct(data);
@@ -41,7 +42,7 @@ const ProductDetailPage = ({ showCart, setShowCart }) => {
     };
 
     fetchProduct();
-  }, [productId, navigate]);
+  }, [slug, navigate]);
 
   const handleAddToCart = () => {
     if (product.hasSizeVariants && !selectedSize) {
@@ -90,19 +91,19 @@ const ProductDetailPage = ({ showCart, setShowCart }) => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
-      <button
-        onClick={() => navigate('/catalogo')}
-        className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-6"
-      >
-        <ArrowLeft className="w-5 h-5" />
-        Volver al catálogo
-      </button>
+<button
+  onClick={() => navigate('/catalogo')}
+  className="flex items-center gap-2 bg-green-100 hover:bg-green-200 text-green-800 px-4 py-2 rounded-lg mb-6 transition-all duration-300 hover:shadow-md"
+>
+  <ArrowLeft className="w-5 h-5" />
+  <span className="font-medium">Volver al Catálogo</span>
+</button>
 
       <div className="bg-white rounded-lg shadow-lg overflow-hidden relative">
         {showSizeError && (
-            <div className="absolute top-4 left-4 right-4 z-10 animate-fade-in-up">
-  <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg flex items-center gap-2">
-    <AlertCircle className="w-5 h-5" />
+          <div className="absolute top-4 left-4 right-4 z-10 animate-fade-in-up">
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg flex items-center gap-2">
+              <AlertCircle className="w-5 h-5" />
               <span>Por favor seleccione un tamaño</span>
             </div>
           </div>
@@ -147,12 +148,6 @@ const ProductDetailPage = ({ showCart, setShowCart }) => {
             <div>
               <h2 className="text-lg font-semibold text-gray-900 mb-2">Descripción</h2>
               <p className="text-gray-600">{product.description}</p>
-            </div>
-
-            <div className="bg-gray-50 p-4 rounded-lg space-y-2">
-              <p className="text-sm text-gray-600">
-                <strong>Código del producto:</strong> {product._id}
-              </p>
             </div>
 
             {/* Selector de tamaño y cantidad */}
