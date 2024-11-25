@@ -8,9 +8,9 @@ import CartDrawer from '../components/CartDrawer';
 import QuotationForm from '../components/QuotationForm';
 
 const ProductDetailPage = ({ showCart, setShowCart }) => {
-  const { slug } = useParams(); // Cambiado de productId a slug
+  const { slug } = useParams();
   const navigate = useNavigate();
-  const { addToCart } = useCart();
+  const { addToCart, cartItems, removeFromCart, updateQuantity, clearCart } = useCart();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedSize, setSelectedSize] = useState('');
@@ -18,13 +18,7 @@ const ProductDetailPage = ({ showCart, setShowCart }) => {
   const [addMessage, setAddMessage] = useState(null);
   const [showSizeError, setShowSizeError] = useState(false);
   const [showImageModal, setShowImageModal] = useState(false);
-  const { cartItems, removeFromCart, updateQuantity } = useCart();
   const [showQuotationForm, setShowQuotationForm] = useState(false);
-
-  const handleQuotationRequest = () => {
-    setShowCart(false);
-    setShowQuotationForm(true);
-  };
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -79,6 +73,17 @@ const ProductDetailPage = ({ showCart, setShowCart }) => {
     }
   };
 
+  const handleQuotationRequest = () => {
+    setShowCart(false);
+    setShowQuotationForm(true);
+  };
+
+  const handleClearCart = () => {
+    clearCart();
+    setAddMessage('Carrito limpiado exitosamente');
+    setTimeout(() => setAddMessage(null), 3000);
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -91,26 +96,25 @@ const ProductDetailPage = ({ showCart, setShowCart }) => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
-<button
-  onClick={() => navigate('/catalogo')}
-  className="flex items-center gap-2 bg-green-100 hover:bg-green-200 text-green-800 px-4 py-2 rounded-lg mb-6 transition-all duration-300 hover:shadow-md"
->
-  <ArrowLeft className="w-5 h-5" />
-  <span className="font-medium">Volver al Catálogo</span>
-</button>
+      <button
+        onClick={() => navigate('/catalogo')}
+        className="flex items-center gap-2 bg-green-100 hover:bg-green-200 text-green-800 px-4 py-2 rounded-lg mb-6 transition-all duration-300 hover:shadow-md"
+      >
+        <ArrowLeft className="w-5 h-5" />
+        <span className="font-medium">Volver al Catálogo</span>
+      </button>
 
       <div className="bg-white rounded-lg shadow-lg overflow-hidden relative">
         {showSizeError && (
           <div className="absolute top-4 left-4 right-4 z-10 animate-fade-in-up">
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg flex items-center gap-2">
               <AlertCircle className="w-5 h-5" />
-              <span>Por favor seleccione un tamaño</span>
+              <span>Por favor seleccione una variante</span>
             </div>
           </div>
         )}
 
         <div className="grid md:grid-cols-2 gap-8 p-6">
-          {/* Imagen del producto */}
           <div className="relative">
             <img
               src={product.imageUrl}
@@ -125,7 +129,6 @@ const ProductDetailPage = ({ showCart, setShowCart }) => {
             )}
           </div>
 
-          {/* Información del producto */}
           <div className="space-y-6">
             <div>
               <div className="flex justify-between items-start">
@@ -150,12 +153,11 @@ const ProductDetailPage = ({ showCart, setShowCart }) => {
               <p className="text-gray-600">{product.description}</p>
             </div>
 
-            {/* Selector de tamaño y cantidad */}
             <div className="space-y-4">
               {product.hasSizeVariants && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Tamaño
+                    Variante
                   </label>
                   <select
                     value={selectedSize}
@@ -164,7 +166,7 @@ const ProductDetailPage = ({ showCart, setShowCart }) => {
                       showSizeError ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-300'
                     }`}
                   >
-                    <option value="">Seleccionar tamaño</option>
+                    <option value="">Seleccionar variante</option>
                     {product.sizeVariants
                       .filter(variant => variant.isAvailable)
                       .map((variant) => (
@@ -205,7 +207,6 @@ const ProductDetailPage = ({ showCart, setShowCart }) => {
               </div>
             </div>
 
-            {/* Botones de acción */}
             <div className="space-y-4 pt-4">
               <button
                 onClick={handleAddToCart}
@@ -216,7 +217,7 @@ const ProductDetailPage = ({ showCart, setShowCart }) => {
               </button>
 
               <a
-                href={`https://wa.me/TUNUMERO?text=Hola, estoy interesado en el producto: ${product.name}`}
+                href={`https://wa.me/56928633023?text=Hola, estoy interesado en el producto: ${product.name}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full bg-green-100 text-green-800 py-3 rounded-lg hover:bg-green-200 transition-colors flex items-center justify-center gap-2"
@@ -230,6 +231,7 @@ const ProductDetailPage = ({ showCart, setShowCart }) => {
           </div>
         </div>
       </div>
+
       <CartDrawer
         isOpen={showCart}
         onClose={() => setShowCart(false)}
@@ -237,6 +239,7 @@ const ProductDetailPage = ({ showCart, setShowCart }) => {
         onUpdateQuantity={updateQuantity}
         onRemove={removeFromCart}
         onQuotationRequest={handleQuotationRequest}
+        onClearCart={handleClearCart}
       />
       
       {showQuotationForm && (
@@ -248,6 +251,7 @@ const ProductDetailPage = ({ showCart, setShowCart }) => {
           }}
         />
       )}
+
       {showImageModal && (
         <ImageModal
           imageUrl={product.imageUrl}

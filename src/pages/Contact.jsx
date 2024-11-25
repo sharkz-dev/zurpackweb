@@ -254,20 +254,28 @@ const Contact = ({ showCart, setShowCart }) => {
           </form>
         </div>
       </div>
-
-      {/* Map Section */}
-      <div className="w-full h-96 bg-gray-200 mt-16">
-        <iframe
-          title="Ubicación"
-          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3329.0398!2d-70.6483!3d-33.4372!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMzPCsDI2JzE0LjAiUyA3MMKwMzgnNTQuMCJX!5e0!3m2!1ses!2scl!4v1234567890"
-          width="100%"
-          height="100%"
-          style={{ border: 0 }}
-          allowFullScreen=""
-          loading="lazy"
-          referrerPolicy="no-referrer-when-downgrade"
-        />
-      </div>
+{/* Map Section */}
+<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-16 mb-16">
+  <div className="w-full h-96 bg-white rounded-lg overflow-hidden shadow-md border border-gray-200 hover:shadow-lg transition-shadow duration-300">
+    <div className="p-4 border-b border-gray-200 bg-white">
+      <h3 className="text-lg font-semibold text-gray-900">Nuestra Ubicación</h3>
+      <p className="text-sm text-gray-500">Encuéntranos en el corazón de Temuco</p>
+    </div>
+    <div className="relative h-[calc(100%-4rem)]">
+      <iframe
+        title="Ubicación"
+        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3329.0398!2d-70.6483!3d-33.4372!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMzPCsDI2JzE0LjAiUyA3MMKwMzgnNTQuMCJX!5e0!3m2!1ses!2scl!4v1234567890"
+        width="100%"
+        height="100%"
+        style={{ border: 0 }}
+        allowFullScreen=""
+        loading="lazy"
+        referrerPolicy="no-referrer-when-downgrade"
+        className="absolute inset-0"
+      />
+    </div>
+  </div>
+</div>
 
       {/* Cart Drawer */}
       <CartDrawer

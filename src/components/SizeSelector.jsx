@@ -36,7 +36,7 @@ const SizeSelector = ({
             transition-colors duration-200
           `}
         >
-          <option value="">Seleccionar tamaño</option>
+          <option value="">Seleccionar variante</option>
           {variants.map((variant, index) => (
             <option 
               key={index} 
@@ -62,14 +62,14 @@ const SizeSelector = ({
       {/* Mensaje cuando no hay tamaños disponibles */}
       {availableVariants.length === 0 && variants.length > 0 && (
         <p className="mt-1 text-sm text-amber-600">
-          No hay tamaños disponibles actualmente
+          No hay variantes disponibles actualmente
         </p>
       )}
 
       {/* Contador de opciones disponibles */}
       {availableVariants.length > 0 && (
         <p className="mt-1 text-sm text-gray-500">
-          {availableVariants.length} tamaño{availableVariants.length !== 1 ? 's' : ''} disponible{availableVariants.length !== 1 ? 's' : ''}
+          {availableVariants.length} variante{availableVariants.length !== 1 ? 's' : ''} disponible{availableVariants.length !== 1 ? 's' : ''}
         </p>
       )}
     </div>

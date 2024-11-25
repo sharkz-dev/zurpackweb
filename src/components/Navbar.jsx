@@ -5,12 +5,16 @@ import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import Login from './Login';
 
-const Navbar = ({ setShowCart }) => {
+const Navbar = ({ setShowCart, showCart }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const { admin, logout } = useAuth();
   const { getUniqueItemsCount } = useCart();
   const location = useLocation();
+
+  const toggleCart = () => {
+    setShowCart(!showCart);
+  };
 
   const handleLogout = () => {
     try {
@@ -73,18 +77,18 @@ const Navbar = ({ setShowCart }) => {
               
               {/* Carrito y Autenticación */}
               <div className="flex items-center gap-4 ml-4">
-              <button
-  onClick={() => setShowCart(true)}
-  className="relative text-gray-500 hover:text-green-500 transition-colors"
-  title="Carrito de cotización"
->
-  <ShoppingCart className="w-6 h-6" />
-  {getUniqueItemsCount() > 0 && (
-    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-      {getUniqueItemsCount()}
-    </span>
-  )}
-</button>
+                <button
+                  onClick={toggleCart}
+                  className="relative text-gray-500 hover:text-green-500 transition-colors"
+                  title="Carrito de cotización"
+                >
+                  <ShoppingCart className="w-6 h-6" />
+                  {getUniqueItemsCount() > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                      {getUniqueItemsCount()}
+                    </span>
+                  )}
+                </button>
                 
                 <AuthButton />
               </div>
@@ -93,7 +97,7 @@ const Navbar = ({ setShowCart }) => {
             {/* Menú móvil */}
             <div className="md:hidden flex items-center gap-4">
               <button
-                onClick={() => setShowCart(true)}
+                onClick={toggleCart}
                 className="relative text-gray-500 hover:text-green-500"
               >
                 <ShoppingCart className="w-6 h-6" />

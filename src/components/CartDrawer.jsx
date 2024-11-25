@@ -11,7 +11,7 @@ const CartItem = ({ item, onUpdateQuantity, onRemove }) => (
     <div className="flex-1">
       <h4 className="font-medium">{item.name}</h4>
       {item.selectedSize && (
-        <p className="text-sm text-gray-600">Tamaño: {item.selectedSize}</p>
+        <p className="text-sm text-gray-600">Variante: {item.selectedSize}</p>
       )}
       <div className="flex items-center gap-2 mt-2">
         <button
@@ -73,7 +73,7 @@ const CartDrawer = ({
           </div>
         ) : (
           <>
-            <div className="flex-1 overflow-y-auto space-y-4">
+            <div className="flex-1 overflow-y-auto space-y-4 pt-2">
               {items.map((item) => (
                 <CartItem
                   key={`${item._id}-${item.selectedSize || 'default'}`}

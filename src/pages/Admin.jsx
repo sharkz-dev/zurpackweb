@@ -186,18 +186,19 @@ const Admin = () => {
         {activeTab === 'products' ? (
           <>
             <Section title={editingProduct ? 'Editar Producto' : 'Añadir Nuevo Producto'}>
-              <ProductForm
-                formData={formData}
-                setFormData={setFormData}
-                imagePreview={imagePreview}
-                onSubmit={handleProductSubmit}
-                onCancel={editingProduct ? resetForm : undefined}
-                isEditing={!!editingProduct}
-                onImageChange={(e) => {
-                  const file = handleImageChange(e.target.files[0]);
-                  setFormData(prev => ({ ...prev, image: file }));
-                }}
-              />
+            <ProductForm
+  formData={formData}
+  setFormData={setFormData}
+  imagePreview={imagePreview}
+  onSubmit={handleProductSubmit}
+  onCancel={editingProduct ? resetForm : undefined}
+  isEditing={!!editingProduct}
+  products={products} // Añade esta prop
+  onImageChange={(e) => {
+    const file = handleImageChange(e.target.files[0]);
+    setFormData(prev => ({ ...prev, image: file }));
+  }}
+/>
             </Section>
 
             <Section title="Productos Existentes">

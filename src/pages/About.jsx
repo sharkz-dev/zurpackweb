@@ -46,19 +46,19 @@ const About = ({ showCart: propShowCart, setShowCart: propSetShowCart }) => {
 
   const team = [
     {
-      name: "Juan Pérez",
+      name: "Gustavo Zurita",
       position: "Gerente General",
       image: "/api/placeholder/200/200",
       description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
     },
     {
-      name: "María González",
+      name: "Guiso de Mote",
       position: "Directora Comercial",
       image: "/api/placeholder/200/200",
       description: "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
     },
     {
-      name: "Carlos Rodríguez",
+      name: "Nachoclo",
       position: "Jefe de Producción",
       image: "/api/placeholder/200/200",
       description: "Ut enim ad minim veniam, quis nostrud exercitation ullamco."
@@ -73,7 +73,7 @@ const About = ({ showCart: propShowCart, setShowCart: propSetShowCart }) => {
           <div className="text-center">
             <h1 className="text-4xl sm:text-5xl font-bold mb-4">Sobre Nosotros</h1>
             <p className="text-lg sm:text-xl text-green-100 max-w-3xl mx-auto">
-              Empresa líder en soluciones de empaque, comprometida con la calidad y el medio ambiente.
+              Lorem ipsum dolor sit amet consectetur adipisicing elit. Enim placeat.
             </p>
           </div>
         </div>
@@ -174,7 +174,7 @@ const About = ({ showCart: propShowCart, setShowCart: propSetShowCart }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
         <h2 className="text-3xl font-bold text-gray-900 mb-4">¿Listo para trabajar con nosotros?</h2>
         <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
-          Contáctanos hoy mismo para discutir cómo podemos ayudarte con tus necesidades de empaque.
+          Contáctanos hoy mismo para discutir cómo podemos ayudarte.
         </p>
         <a
           href="/contacto"

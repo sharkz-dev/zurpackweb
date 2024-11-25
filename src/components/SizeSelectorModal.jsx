@@ -21,7 +21,7 @@ const SizeSelectorModal = ({
       <div className="bg-white rounded-lg p-6 max-w-md w-full">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold text-gray-900">
-            Seleccionar tamaño
+            Seleccionar variante
           </h3>
           <button
             onClick={onClose}
@@ -49,7 +49,7 @@ const SizeSelectorModal = ({
             onChange={(e) => onSizeSelect(e.target.value)}
             className="w-full p-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent mb-2"
           >
-            <option value="">Seleccionar tamaño</option>
+            <option value="">Seleccionar variante</option>
             {product.sizeVariants.map((variant) => (
               <option 
                 key={variant.size} 

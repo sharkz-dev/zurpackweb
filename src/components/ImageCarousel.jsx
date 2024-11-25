@@ -76,42 +76,62 @@ const ImageCarousel = () => {
 
   return (
     <div className="w-full max-w-7xl mx-auto bg-gray-900 overflow-hidden">
-      {/* Contenedor principal con altura fija para desktop y relación de aspecto para móvil */}
-      <div className="relative w-full h-[200px] sm:h-[300px] md:h-[400px] lg:h-[500px]">
-        {/* Contenedor de slides */}
-        <div 
-          className="absolute inset-0 w-full h-full flex transition-transform duration-500 ease-out"
-          style={{ transform: `translateX(-${currentIndex * 100}%)` }}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-        >
-          {images.map((image, index) => (
-            <div 
-              key={index} 
-              className="relative min-w-full h-full flex-shrink-0"
-            >
-              <img
-                src={image.url}
-                alt={image.title}
-                className="w-full h-full object-cover"
-              />
-              {/* Overlay con gradiente */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
-              
-              {/* Contenido */}
-              <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6">
-                <div className="max-w-7xl mx-auto">
-                  <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-2">
-                    {image.title}
-                  </h2>
-                  <p className="text-sm sm:text-base md:text-lg text-white/90">
-                    {image.description}
-                  </p>
-                </div>
+      {/* Contenedor principal con altura responsiva */}
+      <div className="relative w-full">
+        {/* En móvil usa aspect ratio, en desktop altura fija */}
+        <div className="md:h-[500px] relative">
+          {/* Contenedor móvil con aspect ratio */}
+          <div className="md:hidden relative w-full" style={{ paddingBottom: '75%' }}> {/* 4:3 para móvil */}
+            <div className="absolute inset-0">
+              <div 
+                className="relative h-full flex transition-transform duration-500 ease-out"
+                style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+              >
+                {images.map((image, index) => (
+                  <div key={index} className="relative min-w-full h-full flex-shrink-0">
+                    <img
+                      src={image.url}
+                      alt={image.title}
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
+                    <div className="absolute bottom-0 p-4 w-full">
+                      <h2 className="text-xl font-bold text-white mb-1">{image.title}</h2>
+                      <p className="text-sm text-white/90">{image.description}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-          ))}
+          </div>
+
+          {/* Contenedor desktop */}
+          <div className="hidden md:block h-full">
+            <div 
+              className="absolute inset-0 w-full h-full flex transition-transform duration-500 ease-out"
+              style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+            >
+              {images.map((image, index) => (
+                <div key={index} className="relative min-w-full h-full flex-shrink-0">
+                  <img
+                    src={image.url}
+                    alt={image.title}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-6">
+                    <div className="max-w-7xl mx-auto">
+                      <h2 className="text-3xl font-bold text-white mb-2">{image.title}</h2>
+                      <p className="text-lg text-white/90">{image.description}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Controles de navegación */}

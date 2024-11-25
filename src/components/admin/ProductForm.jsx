@@ -1,8 +1,9 @@
-import React, { memo } from 'react';
+import React, { memo, useState, useEffect } from 'react';
 import { Star, Plus, X } from 'lucide-react';
+import CategoryAutocomplete from '../CategoryAutocomplete';
 
 const SizeVariantsManager = memo(({ variants, setVariants }) => {
-  const [newSize, setNewSize] = React.useState('');
+  const [newSize, setNewSize] = useState('');
 
   const addVariant = () => {
     if (newSize.trim()) {
@@ -50,15 +51,13 @@ const SizeVariantsManager = memo(({ variants, setVariants }) => {
         </button>
       </div>
       
-      {/* Estado inicial - Sin tamaños */}
       {variants.length === 0 && (
         <div className="text-center p-4 border-2 border-dashed border-gray-300 rounded-lg">
-          <p className="text-gray-500">No hay tamaños agregados</p>
-          <p className="text-sm text-red-500 mt-1">Debe agregar al menos un tamaño</p>
+          <p className="text-gray-500">No hay variantes agregadas</p>
+          <p className="text-sm text-red-500 mt-1">Debe agregar al menos una variante</p>
         </div>
       )}
       
-      {/* Lista de tamaños */}
       <div className="space-y-2">
         {variants.map((variant, index) => (
           <div key={index} className="flex items-center gap-2 bg-gray-50 p-2 rounded-md">
@@ -95,10 +94,32 @@ const ProductForm = ({
   imagePreview,
   onSubmit,
   onCancel,
-  isEditing = false
+  isEditing = false,
+  onImageChange
 }) => {
-  // Inicializar el formulario con un array vacío de tamaños
-  React.useEffect(() => {
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/products`);
+        if (!response.ok) throw new Error('Error al cargar productos');
+        const products = await response.json();
+        
+        const uniqueCategories = [...new Set(products.map(product => product.category))]
+          .filter(Boolean)
+          .sort();
+        
+        setCategories(uniqueCategories);
+      } catch (error) {
+        console.error('Error al cargar categorías:', error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  useEffect(() => {
     if (!formData.sizeVariants) {
       setFormData(prev => ({
         ...prev,
@@ -111,19 +132,17 @@ const ProductForm = ({
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    // Validar que haya al menos un tamaño
     if (formData.sizeVariants.length === 0) {
-      alert('Debe agregar al menos un tamaño al producto');
+      alert('Debe agregar al menos un variante al producto');
       return;
     }
 
-    // Validar que los tamaños no estén vacíos
     const hasValidSizes = formData.sizeVariants.every(variant => 
       variant.size && variant.size.trim() !== ''
     );
 
     if (!hasValidSizes) {
-      alert('Por favor, asegúrese de que todos los tamaños sean válidos');
+      alert('Por favor, asegúrese de que todos los variantes sean válidos');
       return;
     }
 
@@ -132,7 +151,6 @@ const ProductForm = ({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* ... resto del código del formulario igual ... */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -151,12 +169,11 @@ const ProductForm = ({
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Categoría
           </label>
-          <input
-            type="text"
-            required
-            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-green-500"
+          <CategoryAutocomplete
             value={formData.category}
-            onChange={(e) => setFormData({...formData, category: e.target.value})}
+            onChange={(value) => setFormData({...formData, category: value})}
+            categories={categories}
+            required
           />
         </div>
 
@@ -181,9 +198,7 @@ const ProductForm = ({
             type="file"
             className="w-full"
             accept="image/*"
-            onChange={(e) => 
-              setFormData({...formData, image: e.target.files[0]})
-            }
+            onChange={(e) => onImageChange(e)}
             required={!isEditing}
           />
           {imagePreview && (
@@ -199,7 +214,7 @@ const ProductForm = ({
 
         <div className="md:col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Tamaños disponibles <span className="text-red-500">*</span>
+            Variantes disponibles <span className="text-red-500">*</span>
           </label>
           <SizeVariantsManager
             variants={formData.sizeVariants}

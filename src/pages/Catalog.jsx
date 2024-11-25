@@ -19,7 +19,7 @@ const MemoizedAdvertisement = memo(Advertisement);
 const MemoizedImageCarousel = memo(ImageCarousel);
 const MemoizedFilterPanel = memo(FilterPanel);
 
-const PRODUCTS_PER_PAGE = 12;
+const PRODUCTS_PER_PAGE = 16;
 
 const Catalog = ({ showCart, setShowCart }) => {
   const { cartItems, removeFromCart, updateQuantity, clearCart } = useCart();
@@ -210,7 +210,7 @@ const Catalog = ({ showCart, setShowCart }) => {
                 </button>
               </div>
             ) : (
-              <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+<div className="grid gap-3 grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                 {currentProducts.map((product) => (
                   <MemoizedProductCard
                     key={product._id}
